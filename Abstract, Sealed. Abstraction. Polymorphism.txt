@@ -1,0 +1,192 @@
+using System;
+using System.Runtime.ConstrainedExecution;
+using static Car;
+
+
+
+public class Program
+{
+    static void Main(string[] args)
+
+    {
+        fuel:
+        double fuel, tankCapacity, fuelConsumption;
+        Console.Write(" ne qeder benzin olduqunu daxil ed ");
+        if (!double.TryParse(Console.ReadLine(), out fuel))
+        {
+            Colored.WriteLine("Səhv daxil etddin.", ConsoleColor.Red);
+            goto fuel;
+        }
+
+        Console.Write(" tutumunu daxil ed: ");
+        if (!double.TryParse(Console.ReadLine(), out tankCapacity))
+        {
+            Colored.WriteLine("Səhv daxil etddin.", ConsoleColor.Red);
+            goto fuel;
+        }
+
+        Console.Write("100km-e nə qeder benzin sərf etdiyini daxil ed: ");
+        if (!double.TryParse(Console.ReadLine(), out fuelConsumption))
+        {
+            Colored.WriteLine("Səhv daxil etddin.", ConsoleColor.Red);
+            goto fuel;
+        }
+
+        Car car = new Car(fuel, tankCapacity, fuelConsumption);
+
+        bool continueRunning = true;
+
+        while (true)
+        {
+            Console.WriteLine("Menyu:");
+            Console.WriteLine("1. Sür");
+            Console.WriteLine("2. Zapravkaya gir");
+            Console.WriteLine("3. Benzini göstər");
+            Console.WriteLine("4. Getdiyimiz yolu göstər");
+            Console.Write("Seciminizi edin (1-4): ");
+
+            string choice = Console.ReadLine();
+
+            switch (choice)
+            {
+                case "1":
+                    Console.Write("ne qeder yol getmək istəyirsen: ");
+                    if (double.TryParse(Console.ReadLine(), out double distance))
+                    {
+                        if (car.Drive(distance))
+                        {
+                            Colored.WriteLine($"Qalan benzin: {car.MileAge}L, Getdilen yol: {car.MileAge}km", ConsoleColor.Green);
+                        }
+                        else
+                        {
+                            Colored.WriteLine("Bu yolu getmək olmaz.", ConsoleColor.Red);
+                        }
+                    }
+                    else
+                    {
+                        Colored.WriteLine("Səhv daxil etddin.", ConsoleColor.Red);
+                    }
+                    break;
+                case "2":
+                    Console.Write("Ne  qeder  benzin doldurmaq istəyirsem: ");
+                    if (double.TryParse(Console.ReadLine(), out double refuelAmount))
+                    {
+                        car.Refuel(refuelAmount);
+                        Colored.WriteLine($"Bakı {refuelAmount}L ilə doldurdunuz.", ConsoleColor.Green);
+                    }
+                    else
+                    {
+                        Colored.WriteLine("Səhv daxil etddin.", ConsoleColor.Red);
+                    }
+                    break;
+                case "3":
+                    car.ShowFuel();
+                    break;
+                case "4":
+                    car.ShowMileage();
+                    break;
+                default:
+                    Colored.WriteLine("sehv secm.", ConsoleColor.Red);
+                    break;
+            }
+
+            Console.Write("Davam etmək istəyirssen? (y/n): ");
+            string continueChoice = Console.ReadLine();
+            if (continueChoice.ToLower() != "y")
+            {
+                continueRunning = false;
+            }
+        }
+    }
+}
+public static class Colored
+{
+    public static void Write(string text, ConsoleColor color = ConsoleColor.White)
+    {
+        Console.ForegroundColor = color;
+        Console.Write(text);
+        Console.ResetColor();
+    }
+
+    public static void WriteLine(string text, ConsoleColor color = ConsoleColor.White)
+    {
+        Console.ForegroundColor = color;
+        Console.WriteLine(text);
+        Console.ResetColor();
+    }
+}
+
+public class Car : IVehicle
+{
+    public double MileAge { get; private set; }
+    public double Fuel { get; private set; }
+    public double FuelConsumption { get; private set; }
+    public double TankCapacity { get; private set; }
+
+    public Car(double fuel = 20, double tankCapacity = 40, double fuelConsumption = 10)
+    {
+        Fuel = fuel;
+        TankCapacity = tankCapacity;
+        FuelConsumption = fuelConsumption;
+        MileAge = 0;
+    }
+    public interface IVehicle : IDrivable, IRefuellable { }
+    public interface IDrivable
+    {
+        bool Drive(double kilometer);
+    }
+
+    public interface IRefuellable
+    {
+        bool Refuel(double amount);
+    }
+
+    public bool Drive(double kilometers)
+    {
+        double fuelNeeded = kilometers / FuelConsumption;
+        if (fuelNeeded <= Fuel)
+        {
+            MileAge += kilometers;
+            Fuel -= fuelNeeded;
+            return true;
+        }
+        return false;
+    }
+
+    public bool Refuel(double amount)
+    {
+        if (amount < 0)
+        {
+            Colored.WriteLine("Səhv daxil etddin.", ConsoleColor.Red);
+            return false;
+        }
+
+        if (Fuel + amount > TankCapacity)
+        {
+            Fuel = TankCapacity;
+        }
+        else
+        {
+            Fuel += amount;
+        }
+
+        return true;
+    }
+
+    public void ShowFuel()
+    {
+        Colored.WriteLine($"Bak: {Fuel}", ConsoleColor.Red);
+    }
+
+    public void ShowMileage()
+    {
+        Colored.WriteLine($"Gedilen yol: {MileAge}km", ConsoleColor.Yellow);
+    }
+}
+
+
+
+
+
+
+
